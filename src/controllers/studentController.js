@@ -70,7 +70,7 @@ const studentDetails = async function (req, res) {
         const userId = req.params.userId
         const data = req.query
 
-        const filters = { teacher: userId }
+        const filters = { teacher: userId, isDeleted: false }
 
         if (data.subject) {
             if (!aplhaNumeric(data.subject)) return res.status(400).send({ status: false, message: "subject should be in correct form" })
