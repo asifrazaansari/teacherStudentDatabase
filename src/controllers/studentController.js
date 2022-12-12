@@ -1,11 +1,23 @@
 const studentModel = require("../models/studentModel")
 
 
+const num = /^[0-9.]+$/
+const aplhaNumeric = (value) => {
+    const streetRegex = /^[a-zA-Z0-9 ]+$/
+    if(value === undefined) return false
+    if (streetRegex.test(value)) return true
+}
+
 const addStudent = async function (req, res) {
     try {
         const data = req.body
         const decoded = req.decodedToken
 
+        //validations
+        if (!aplhaNumeric(data.uniqueId)) return res.status(400).send({ status: false, message: "uniqueId should be present and in correct form" })
+        if (!aplhaNumeric(data.studentName)) return res.status(400).send({ status: false, message: "studentName should be present and in correct form" })
+        if (!aplhaNumeric(data.subject)) return res.status(400).send({ status: false, message: "subject should be present and in correct form" })
+        if (!num.test(data.marks)) return res.status(400).send({ status: false, message: "marks should be present and in correct form" })
 
         let studentDetails = await studentModel.findOne({ uniqueId: data.uniqueId, teacher: decoded.userId, isDeleted: false })
 
@@ -16,7 +28,7 @@ const addStudent = async function (req, res) {
                 studentName: data.studentName,
                 subjectMarks: [{
                     subject: data.subject,
-                    marks: data.marks
+                    marks: Math.round(data.marks)
                 }],
                 teacher: decoded.userId,
             })
@@ -31,7 +43,7 @@ const addStudent = async function (req, res) {
             for (let i = 0; i < studentDetails.subjectMarks.length; i++) {
                 let sub = studentDetails.subjectMarks[i]
                 if (sub.subject === data.subject) {
-                    sub.marks += data.marks
+                    sub.marks += Math.round(data.marks)
                     const studentAdded = await studentDetails.save()
                     const resData = await studentAdded.populate({
                         path: 'teacher', select: { _id: 0, 'teacherName': 1 }
@@ -41,7 +53,7 @@ const addStudent = async function (req, res) {
             }
             //pushing new subject
             const pushSub = await studentModel.findOneAndUpdate({ uniqueId: data.uniqueId, teacher: decoded.userId, isDeleted: false }, {
-                $push: { "subjectMarks": { subject: data.subject, marks: data.marks } },
+                $push: { "subjectMarks": { subject: data.subject, marks: Math.round(data.marks) } },
             }, { new: true }).populate({
                 path: 'teacher', select: { _id: 0, 'teacherName': 1 }
             })
@@ -61,9 +73,11 @@ const studentDetails = async function (req, res) {
         const filters = { teacher: userId }
 
         if (data.subject) {
+            if (!aplhaNumeric(data.subject)) return res.status(400).send({ status: false, message: "subject should be in correct form" })
             filters.subjectMarks = { $elemMatch: { subject: data.subject } }
         }
         if (data.studentName) {
+            if (!aplhaNumeric(data.studentName)) return res.status(400).send({ status: false, message: "studentName should be in correct form" })
             filters.studentName = data.studentName
         } else if (!data.subject && !data.studentName && Object.keys(data).length > 0) {
             return res.status(400).send({ status: false, message: "filters should only be name or subject" })
@@ -89,9 +103,17 @@ const updateStudent = async function (req, res) {
         const usrerId = req.params.userId
         const data = req.body
 
+        //validations
+        if (Object.keys(data).length === 0) return res.status(400).send({ status: false, message: "please provide a field to update" })
+        if (!aplhaNumeric(data.uniqueId)) return res.status(400).send({ status: false, message: "uniqueId should be present and in correct form" })
 
-        if (Object.keys(data).length <= 0) return res.status(400).send({ status: false, message: "please provide a field to update" })
-        if (!data.uniqueId) return res.status(400).send({ status: false, message: "please provide unique Id" })
+        if (data.studentName) {
+            if (!aplhaNumeric(data.studentName)) return res.status(400).send({ status: false, message: "studentName should be in correct form" })
+        }
+
+        if (data.subject) {
+            if (!aplhaNumeric(data.subject)) return res.status(400).send({ status: false, message: "subject should be in correct form" })
+        }
 
         const student = await studentModel.findOneAndUpdate({ uniqueId: data.uniqueId, teacher: usrerId, isDeleted: false }, {
             $pull: { "subjectMarks": { subject: data.subject } },
@@ -115,8 +137,9 @@ const deleteStudent = async function (req, res) {
         const userId = req.params.userId
         const data = req.query
 
-        if (!data.studentName) return res.status(400).send({ status: false, message: "please provide student name" })
-        const deleteUser = await studentModel.findOneAndUpdate({ teacher: userId, isDeleted: false, studentName: data.studentName },
+        if (!aplhaNumeric(data.uniqueId)) return res.status(400).send({ status: false, message: "uniqueId should be present and in correct form" })
+        if (!aplhaNumeric(data.studentName)) return res.status(400).send({ status: false, message: "studentName should be present and in correct form" })
+        const deleteUser = await studentModel.findOneAndUpdate({ teacher: userId, isDeleted: false, studentName: data.studentName, uniqueId: data.uniqueId },
             { isDeleted: true }
         )
 
