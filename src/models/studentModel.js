@@ -30,6 +30,10 @@ const studentSchema = new mongoose.Schema({
     teacher: {
         type: ObjectId,
         ref: "teacherList"
+    },
+    isDeleted : {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true })
 

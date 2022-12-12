@@ -3,7 +3,7 @@ const router = express.Router()
 
 //=================== Controllers require ===================//
 const {teacherRegister, login} = require("../controllers/teacherController")
-const {addStudent, studentDetails} = require("../controllers/studentController")
+const {addStudent, studentDetails, updateStudent, deleteStudent} = require("../controllers/studentController")
 
 
 //=================== Middlewares, validations =============//
@@ -18,6 +18,9 @@ router.post('/login', login)
 //==================== Student routes =======================//
 router.post("/addStudent", authenticaion, addStudent)
 router.get("/studentDetails/:userId", authenticaion, authorization, studentDetails)
+router.put("/updateStudent/:userId", authenticaion, authorization, updateStudent)
+router.delete("/deleteStudent/:userId", authenticaion, authorization, deleteStudent)
+
 
 router.all('/*', async function (req, res) {
     return res.status(400).send({ status: false, message: "Page not found" })
