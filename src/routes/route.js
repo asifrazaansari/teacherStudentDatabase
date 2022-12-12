@@ -6,9 +6,8 @@ const {teacherRegister, login} = require("../controllers/teacherController")
 const {addStudent, studentDetails, updateStudent, deleteStudent} = require("../controllers/studentController")
 
 
-//=================== Middlewares, validations =============//
+//=================== Middleware =============//
 const {authenticaion, authorization} = require("../middlewares/auth")
-const {} = require("../validators/validation")
 
 
 //==================== Teacher routes =======================//
