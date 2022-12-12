@@ -1,2 +1,2 @@
 # teacherStudentDatabase
-Creating teacher and students databse using JavaScript, nodeJS and MongoDB
+Creating teacher and student database using JavaScript, nodeJS, express framework and MongoDB
